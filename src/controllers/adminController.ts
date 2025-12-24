@@ -65,7 +65,7 @@ export const handleAdminLogin = async (req: Request, res: Response): Promise<voi
 
 
 
-  export const loadAdminDashboard = async (req: Request, res: Response) => {
+export const loadAdminDashboard = async (req: Request, res: Response) => {
   try {
     if (!req.session.adminId) {
       return res.redirect("/admin/login");
@@ -73,8 +73,29 @@ export const handleAdminLogin = async (req: Request, res: Response): Promise<voi
 
     const students = await StudentModel.find();
 
+    let successMessage = null;
+    let errorMessage = null;
+
+    if (req.query.success === "created") {
+      successMessage = "Student added successfully!";
+    }
+
+    if (req.query.success === "updated") {
+      successMessage = "Student updated successfully!";
+    }
+
+    if (req.query.success === "deleted") {
+      successMessage = "Student deleted successfully!";
+    }
+
+    if (req.query.error) {
+      errorMessage = req.query.error;
+    }
+
     res.render("admin/dashboard", {
-      students
+      students,
+      successMessage,
+      errorMessage
     });
 
   } catch (error) {
@@ -87,17 +108,33 @@ export const handleAdminLogin = async (req: Request, res: Response): Promise<voi
 
 
 
+
 export const createStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, age, class: studentClass, email, password } = req.body;
-    console.log(req.body)
 
-    if (!email || !password) {
-      return res.status(400).render("admin/dashboard", {
-        error: "Email and password are required"
-      });
+    // 1️⃣ Basic required checks
+    if (!name || !email || !password || !studentClass) {
+      return res.redirect("/admin?error=All fields are required");
     }
 
+    // 2️⃣ Duplicate name check
+    const existingStudent = await StudentModel.findOne({ name });
+    if (existingStudent) {
+      return res.redirect("/admin?error=Student name already exists");
+    }
+
+    // 3️⃣ Class max = 12
+    if (Number(studentClass) > 12) {
+      return res.redirect("/admin?error=Class should not be greater than 12");
+    }
+
+    // 4️⃣ Password length check
+    if (password.length < 8) {
+      return res.redirect("/admin?error=Password must be at least 8 characters");
+    }
+
+    // 5️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newStudent = new StudentModel({
@@ -110,14 +147,15 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
 
     await newStudent.save();
 
-    // 🔁 redirect back to dashboard (NOT JSON)
-    res.redirect("/admin");
+    // ✅ Success
+    res.redirect("/admin?success=created");
 
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server Error");
+    res.redirect("/admin?error=Something went wrong");
   }
 };
+
 
 
 
@@ -138,7 +176,8 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     });
 
     // 🔁 Back to dashboard
-    res.redirect("/admin");
+   res.redirect("/admin?success=updated");
+
 
   } catch (error) {
     console.error("Update student error:", error);
@@ -159,7 +198,8 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
          await StudentModel.findByIdAndDelete(id);
 
     // 🔁 Redirect back to dashboard
-    res.redirect("/admin");
+   res.redirect("/admin?success=deleted");
+
 
     } catch (error) {
         res.status(500).json({ message: "Server Error", error });

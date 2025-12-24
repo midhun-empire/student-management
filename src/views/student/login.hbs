@@ -17,5 +17,18 @@
         <p class="message">Admin <a href="admin/login">login</a></p>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{{#if error}}
+<script>
+  Swal.fire({
+    icon: 'error',
+    title: 'Login Failed',
+    text: '{{error}}',
+    confirmButtonColor: '#d33'
+  });
+</script>
+{{/if}}
+
   </body>
 

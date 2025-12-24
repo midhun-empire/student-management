@@ -1,8 +1,10 @@
 <div class="top-bar">
   <h2>Student Dashboard</h2>
-  <a href="/logout" class="logout-btn">Logout</a>
+<a href="#" class="logout-btn" onclick="confirmLogout(event)">Logout</a>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/dashboard.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </div>
 
 <div class="dashboard-page">
@@ -14,3 +16,24 @@
     <p><strong>Class:</strong> {{student.class}}</p>
   </div>
 </div>
+
+<script>
+  function confirmLogout(event) {
+    event.preventDefault();
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, logout',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = '/logout';
+      }
+    });
+  }
+</script>

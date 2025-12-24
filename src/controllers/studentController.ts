@@ -13,7 +13,7 @@ export const loadLoginPage = (req: Request, res: Response): void => {
   if (req.session.studentId) {
     return res.redirect("/dashboard");
   }
-  res.render("student/login");
+  res.render("student/login",{error: null});
 };
 
 
